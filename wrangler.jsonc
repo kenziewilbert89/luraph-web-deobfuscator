@@ -1,0 +1,35 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "luraph-web",
+  "main": "src/index.js",
+  "compatibility_date": "2026-09-25",
+  "assets": {
+    "directory": "./public"
+  },
+  "containers": [
+    {
+      "class_name": "LuraphContainer",
+      "image": "./Dockerfile",
+      "max_instances": 1,
+      "instance_type": "standard-1"
+    }
+  ],
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "LURAPH_CONTAINER",
+        "class_name": "LuraphContainer"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["LuraphContainer"]
+    }
+  ],
+  "observability": {
+    "enabled": true
+  },
+  "upload_source_maps": true
+}

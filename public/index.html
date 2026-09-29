@@ -1,0 +1,1459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#07070b" />
+
+  <title>Luraph Deobfuscator</title>
+
+  <style>
+    :root {
+      --bg: #07070b;
+      --panel: rgba(18, 18, 27, 0.72);
+      --panel-strong: rgba(23, 23, 34, 0.92);
+      --border: rgba(255, 255, 255, 0.09);
+      --border-hover: rgba(255, 255, 255, 0.2);
+      --text: #f7f7fb;
+      --muted: #8c8d9a;
+      --soft: #b8b9c5;
+      --accent: #ffffff;
+      --accent-soft: rgba(255, 255, 255, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      overflow-x: hidden;
+      font-family:
+        Inter,
+        ui-sans-serif,
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(
+          circle at 20% 10%,
+          rgba(255, 255, 255, 0.07),
+          transparent 28%
+        ),
+        radial-gradient(
+          circle at 80% 80%,
+          rgba(120, 120, 255, 0.06),
+          transparent 30%
+        ),
+        var(--bg);
+    }
+
+    /* --------------------------------------------------
+       BACKGROUND
+    -------------------------------------------------- */
+
+    .background {
+      position: fixed;
+      inset: 0;
+      z-index: -5;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .grid {
+      position: absolute;
+      inset: -50%;
+      width: 200%;
+      height: 200%;
+      opacity: 0.18;
+
+      background-image:
+        linear-gradient(
+          rgba(255,255,255,0.035) 1px,
+          transparent 1px
+        ),
+        linear-gradient(
+          90deg,
+          rgba(255,255,255,0.035) 1px,
+          transparent 1px
+        );
+
+      background-size: 55px 55px;
+
+      transform:
+        perspective(500px)
+        rotateX(58deg)
+        translateY(-80px);
+
+      animation: gridMove 18s linear infinite;
+    }
+
+    @keyframes gridMove {
+      from {
+        transform:
+          perspective(500px)
+          rotateX(58deg)
+          translateY(-80px);
+      }
+
+      to {
+        transform:
+          perspective(500px)
+          rotateX(58deg)
+          translateY(0);
+      }
+    }
+
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(90px);
+      opacity: 0.12;
+      animation: orbFloat 12s ease-in-out infinite;
+    }
+
+    .orb.one {
+      width: 360px;
+      height: 360px;
+      top: -120px;
+      left: -80px;
+      background: #ffffff;
+    }
+
+    .orb.two {
+      width: 320px;
+      height: 320px;
+      right: -100px;
+      bottom: -80px;
+      background: #6868ff;
+      animation-delay: -4s;
+    }
+
+    .orb.three {
+      width: 220px;
+      height: 220px;
+      top: 45%;
+      left: 45%;
+      background: #9c9cff;
+      animation-delay: -8s;
+    }
+
+    @keyframes orbFloat {
+      0%, 100% {
+        transform: translate3d(0, 0, 0) scale(1);
+      }
+
+      50% {
+        transform: translate3d(30px, -35px, 0) scale(1.08);
+      }
+    }
+
+    .particles {
+      position: absolute;
+      inset: 0;
+    }
+
+    .particle {
+      position: absolute;
+      width: 2px;
+      height: 2px;
+      border-radius: 50%;
+      background: white;
+      opacity: 0.35;
+      animation: particleFloat linear infinite;
+    }
+
+    @keyframes particleFloat {
+      from {
+        transform: translateY(110vh);
+      }
+
+      to {
+        transform: translateY(-20vh);
+      }
+    }
+
+    /* --------------------------------------------------
+       LAYOUT
+    -------------------------------------------------- */
+
+    .page {
+      width: min(1100px, calc(100% - 36px));
+      min-height: 100vh;
+      margin: auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 70px 0;
+    }
+
+    .wrapper {
+      width: 100%;
+      animation: pageIn 0.9s cubic-bezier(.16,1,.3,1) both;
+    }
+
+    @keyframes pageIn {
+      from {
+        opacity: 0;
+        transform: translateY(30px) scale(0.97);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    /* --------------------------------------------------
+       HEADER
+    -------------------------------------------------- */
+
+    .brand {
+      text-align: center;
+      margin-bottom: 34px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+
+      padding: 8px 13px;
+
+      border: 1px solid var(--border);
+      border-radius: 999px;
+
+      background: rgba(255,255,255,0.045);
+      backdrop-filter: blur(12px);
+
+      color: var(--soft);
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+
+      box-shadow:
+        0 10px 40px rgba(0,0,0,0.2);
+
+      animation: badgeIn 1s cubic-bezier(.16,1,.3,1) 0.15s both;
+    }
+
+    @keyframes badgeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-12px) scale(0.9);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #8fffaa;
+      box-shadow: 0 0 12px rgba(143,255,170,0.8);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        opacity: 0.5;
+        transform: scale(0.85);
+      }
+
+      50% {
+        opacity: 1;
+        transform: scale(1.15);
+      }
+    }
+
+    h1 {
+      margin: 22px 0 10px;
+
+      font-size: clamp(42px, 7vw, 76px);
+      line-height: 0.95;
+      letter-spacing: -0.055em;
+      font-weight: 800;
+
+      background:
+        linear-gradient(
+          180deg,
+          #ffffff 0%,
+          #ffffff 42%,
+          #858591 100%
+        );
+
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+
+      text-shadow:
+        0 0 60px rgba(255,255,255,0.08);
+    }
+
+    .subtitle {
+      max-width: 620px;
+      margin: auto;
+
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.7;
+    }
+
+    /* --------------------------------------------------
+       CARD
+    -------------------------------------------------- */
+
+    .card {
+      position: relative;
+      padding: 1px;
+      border-radius: 27px;
+
+      background:
+        linear-gradient(
+          135deg,
+          rgba(255,255,255,0.18),
+          rgba(255,255,255,0.025),
+          rgba(255,255,255,0.1)
+        );
+
+      box-shadow:
+        0 40px 100px rgba(0,0,0,0.42);
+    }
+
+    .card-inner {
+      position: relative;
+      padding: 30px;
+
+      border-radius: 26px;
+
+      background:
+        linear-gradient(
+          145deg,
+          rgba(23,23,33,0.9),
+          rgba(10,10,15,0.92)
+        );
+
+      backdrop-filter: blur(30px);
+      -webkit-backdrop-filter: blur(30px);
+
+      overflow: hidden;
+    }
+
+    .card-inner::before {
+      content: "";
+      position: absolute;
+      width: 450px;
+      height: 450px;
+
+      top: -300px;
+      right: -180px;
+
+      background: radial-gradient(
+        circle,
+        rgba(255,255,255,0.08),
+        transparent 65%
+      );
+
+      pointer-events: none;
+    }
+
+    /* --------------------------------------------------
+       DROP ZONE
+    -------------------------------------------------- */
+
+    .drop-zone {
+      position: relative;
+
+      min-height: 360px;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+
+      border: 1px dashed rgba(255,255,255,0.13);
+      border-radius: 21px;
+
+      background:
+        linear-gradient(
+          145deg,
+          rgba(255,255,255,0.035),
+          rgba(255,255,255,0.012)
+        );
+
+      cursor: pointer;
+
+      overflow: hidden;
+
+      transition:
+        transform 0.45s cubic-bezier(.16,1,.3,1),
+        border-color 0.35s ease,
+        background 0.35s ease,
+        box-shadow 0.45s ease;
+    }
+
+    .drop-zone::before {
+      content: "";
+
+      position: absolute;
+      inset: -100%;
+
+      background:
+        conic-gradient(
+          from 180deg,
+          transparent,
+          rgba(255,255,255,0.07),
+          transparent 35%
+        );
+
+      animation: shine 7s linear infinite;
+      pointer-events: none;
+    }
+
+    @keyframes shine {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .drop-zone:hover,
+    .drop-zone.dragging {
+      transform: translateY(-3px) scale(1.005);
+
+      border-color: rgba(255,255,255,0.35);
+
+      background:
+        linear-gradient(
+          145deg,
+          rgba(255,255,255,0.06),
+          rgba(255,255,255,0.018)
+        );
+
+      box-shadow:
+        inset 0 0 70px rgba(255,255,255,0.025),
+        0 20px 60px rgba(0,0,0,0.2);
+    }
+
+    .upload-icon {
+      position: relative;
+
+      width: 86px;
+      height: 86px;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 24px;
+
+      background:
+        linear-gradient(
+          145deg,
+          rgba(255,255,255,0.1),
+          rgba(255,255,255,0.025)
+        );
+
+      box-shadow:
+        0 20px 50px rgba(0,0,0,0.3);
+
+      font-size: 38px;
+
+      transition:
+        transform 0.5s cubic-bezier(.16,1,.3,1),
+        box-shadow 0.5s ease;
+    }
+
+    .drop-zone:hover .upload-icon {
+      transform:
+        translateY(-8px)
+        rotate(-3deg)
+        scale(1.06);
+
+      box-shadow:
+        0 25px 70px rgba(0,0,0,0.4),
+        0 0 40px rgba(255,255,255,0.05);
+    }
+
+    .drop-title {
+      margin-top: 25px;
+
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .drop-subtitle {
+      margin-top: 8px;
+
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .browse {
+      margin-top: 22px;
+
+      color: #fff;
+      font-size: 13px;
+      font-weight: 600;
+
+      padding: 10px 16px;
+
+      border-radius: 9px;
+
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.08);
+
+      transition:
+        transform 0.25s ease,
+        background 0.25s ease;
+    }
+
+    .drop-zone:hover .browse {
+      transform: translateY(-2px);
+      background: rgba(255,255,255,0.11);
+    }
+
+    #fileInput {
+      display: none;
+    }
+
+    /* --------------------------------------------------
+       FILE INFO
+    -------------------------------------------------- */
+
+    .file-info {
+      max-height: 0;
+      opacity: 0;
+      overflow: hidden;
+
+      transition:
+        max-height 0.55s cubic-bezier(.16,1,.3,1),
+        opacity 0.35s ease,
+        margin-top 0.55s cubic-bezier(.16,1,.3,1);
+    }
+
+    .file-info.visible {
+      max-height: 120px;
+      opacity: 1;
+      margin-top: 18px;
+    }
+
+    .file-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+
+      padding: 15px;
+
+      border-radius: 15px;
+
+      background: rgba(255,255,255,0.035);
+      border: 1px solid var(--border);
+    }
+
+    .file-symbol {
+      width: 42px;
+      height: 42px;
+
+      display: grid;
+      place-items: center;
+
+      border-radius: 12px;
+
+      background: rgba(255,255,255,0.08);
+
+      font-size: 19px;
+    }
+
+    .file-details {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .file-name {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .file-size {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .remove-file {
+      width: 34px;
+      height: 34px;
+
+      border: 0;
+      border-radius: 9px;
+
+      color: var(--muted);
+      background: rgba(255,255,255,0.05);
+
+      cursor: pointer;
+
+      transition:
+        transform 0.25s ease,
+        color 0.25s ease,
+        background 0.25s ease;
+    }
+
+    .remove-file:hover {
+      transform: rotate(90deg);
+      color: #fff;
+      background: rgba(255,255,255,0.1);
+    }
+
+    /* --------------------------------------------------
+       ACTION
+    -------------------------------------------------- */
+
+    .action-area {
+      margin-top: 18px;
+    }
+
+    .deobfuscate-btn {
+      position: relative;
+
+      width: 100%;
+      height: 58px;
+
+      border: 0;
+      border-radius: 15px;
+
+      background: #fff;
+      color: #08080b;
+
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+
+      cursor: pointer;
+
+      overflow: hidden;
+
+      box-shadow:
+        0 12px 40px rgba(255,255,255,0.08);
+
+      transition:
+        transform 0.35s cubic-bezier(.16,1,.3,1),
+        box-shadow 0.35s ease,
+        opacity 0.3s ease;
+    }
+
+    .deobfuscate-btn::before {
+      content: "";
+
+      position: absolute;
+      top: 0;
+      left: -120%;
+
+      width: 80%;
+      height: 100%;
+
+      background:
+        linear-gradient(
+          90deg,
+          transparent,
+          rgba(255,255,255,0.75),
+          transparent
+        );
+
+      transform: skewX(-20deg);
+
+      transition: left 0.7s ease;
+    }
+
+    .deobfuscate-btn:hover:not(:disabled) {
+      transform: translateY(-3px);
+
+      box-shadow:
+        0 18px 55px rgba(255,255,255,0.13);
+    }
+
+    .deobfuscate-btn:hover:not(:disabled)::before {
+      left: 140%;
+    }
+
+    .deobfuscate-btn:active:not(:disabled) {
+      transform: scale(0.985);
+    }
+
+    .deobfuscate-btn:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    /* --------------------------------------------------
+       STATUS
+    -------------------------------------------------- */
+
+    .status {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+
+      min-height: 25px;
+      margin-top: 17px;
+
+      color: var(--muted);
+      font-size: 13px;
+
+      transition:
+        opacity 0.3s ease,
+        transform 0.3s ease;
+    }
+
+    .status-dot-small {
+      width: 6px;
+      height: 6px;
+
+      border-radius: 50%;
+      background: #6f707d;
+    }
+
+    .status.loading .status-dot-small {
+      background: #fff;
+      box-shadow: 0 0 12px rgba(255,255,255,0.7);
+      animation: pulse 0.8s ease-in-out infinite;
+    }
+
+    /* --------------------------------------------------
+       FEATURES
+    -------------------------------------------------- */
+
+    .features {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+
+      margin-top: 18px;
+    }
+
+    .feature {
+      padding: 17px;
+
+      border-radius: 15px;
+
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.025);
+
+      transition:
+        transform 0.35s cubic-bezier(.16,1,.3,1),
+        background 0.35s ease,
+        border-color 0.35s ease;
+    }
+
+    .feature:hover {
+      transform: translateY(-4px);
+      background: rgba(255,255,255,0.05);
+      border-color: var(--border-hover);
+    }
+
+    .feature-icon {
+      font-size: 18px;
+      margin-bottom: 9px;
+    }
+
+    .feature-title {
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .feature-text {
+      margin-top: 4px;
+
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.5;
+    }
+
+    /* --------------------------------------------------
+       FOOTER
+    -------------------------------------------------- */
+
+    footer {
+      margin-top: 28px;
+
+      text-align: center;
+
+      color: #555661;
+      font-size: 11px;
+      letter-spacing: 0.03em;
+    }
+
+    /* --------------------------------------------------
+       RIPPLE
+    -------------------------------------------------- */
+
+    .ripple {
+      position: absolute;
+
+      width: 10px;
+      height: 10px;
+
+      border-radius: 50%;
+
+      background: rgba(0,0,0,0.12);
+
+      transform: scale(0);
+      animation: ripple 0.65s ease-out forwards;
+
+      pointer-events: none;
+    }
+
+    @keyframes ripple {
+      to {
+        transform: scale(30);
+        opacity: 0;
+      }
+    }
+
+    /* --------------------------------------------------
+       RESPONSIVE
+    -------------------------------------------------- */
+
+    @media (max-width: 700px) {
+      .page {
+        width: min(100% - 20px, 600px);
+        padding: 35px 0;
+      }
+
+      .card-inner {
+        padding: 15px;
+      }
+
+      .drop-zone {
+        min-height: 320px;
+      }
+
+      .features {
+        grid-template-columns: 1fr;
+      }
+
+      h1 {
+        font-size: 46px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="background">
+    <div class="grid"></div>
+
+    <div class="orb one"></div>
+    <div class="orb two"></div>
+    <div class="orb three"></div>
+
+    <div class="particles" id="particles"></div>
+  </div>
+
+  <main class="page">
+
+    <div class="wrapper">
+
+      <header class="brand">
+
+        <div class="badge">
+          <span class="status-dot"></span>
+          Luraph V15 Engine
+        </div>
+
+        <h1>Luraph<br>Deobfuscator</h1>
+
+        <p class="subtitle">
+          Upload your Lua source and transform heavily obfuscated
+          Luraph V15 code into readable Lua.
+        </p>
+
+      </header>
+
+      <section class="card">
+
+        <div class="card-inner">
+
+          <label
+            class="drop-zone"
+            id="dropZone"
+            for="fileInput"
+          >
+
+            <div class="upload-icon">
+              ↑
+            </div>
+
+            <div class="drop-title">
+              Drop your Lua file here
+            </div>
+
+            <div class="drop-subtitle">
+              or select a file from your computer
+            </div>
+
+            <div class="browse">
+              Browse files
+            </div>
+
+          </label>
+
+          <input
+            id="fileInput"
+            type="file"
+            accept=".lua"
+          />
+
+          <div class="file-info" id="fileInfo">
+
+            <div class="file-row">
+
+              <div class="file-symbol">
+                ◇
+              </div>
+
+              <div class="file-details">
+
+                <div
+                  class="file-name"
+                  id="fileName"
+                >
+                  —
+                </div>
+
+                <div
+                  class="file-size"
+                  id="fileSize"
+                >
+                  —
+                </div>
+
+              </div>
+
+              <button
+                class="remove-file"
+                id="removeFile"
+                type="button"
+                aria-label="Remove file"
+              >
+                ×
+              </button>
+
+            </div>
+
+          </div>
+
+          <div class="action-area">
+
+            <button
+              class="deobfuscate-btn"
+              id="deobfuscateBtn"
+              disabled
+              type="button"
+            >
+              DEOBFUSCATE
+            </button>
+
+            <div
+              class="status"
+              id="status"
+            >
+              <span class="status-dot-small"></span>
+              <span id="statusText">
+                Waiting for a .lua file
+              </span>
+            </div>
+
+          </div>
+
+          <div class="features">
+
+            <div class="feature">
+
+              <div class="feature-icon">
+                ⚡
+              </div>
+
+              <div class="feature-title">
+                Fast Processing
+              </div>
+
+              <div class="feature-text">
+                Optimized processing pipeline for Lua files.
+              </div>
+
+            </div>
+
+            <div class="feature">
+
+              <div class="feature-icon">
+                ◈
+              </div>
+
+              <div class="feature-title">
+                Luraph V15
+              </div>
+
+              <div class="feature-text">
+                Designed around the Luraph V15 devirtualization engine.
+              </div>
+
+            </div>
+
+            <div class="feature">
+
+              <div class="feature-icon">
+                ↓
+              </div>
+
+              <div class="feature-title">
+                Download Result
+              </div>
+
+              <div class="feature-text">
+                Receive the generated Lua source when processing completes.
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+      <footer>
+        Luraph Deobfuscator · Web Interface
+      </footer>
+
+    </div>
+
+  </main>
+
+  <script>
+    /* --------------------------------------------------
+       PARTICLES
+    -------------------------------------------------- */
+
+    const particles = document.getElementById("particles");
+
+    for (let i = 0; i < 45; i++) {
+      const particle = document.createElement("div");
+
+      particle.className = "particle";
+
+      particle.style.left = Math.random() * 100 + "%";
+      particle.style.animationDuration =
+        (8 + Math.random() * 15) + "s";
+
+      particle.style.animationDelay =
+        (-Math.random() * 15) + "s";
+
+      particle.style.opacity =
+        (0.12 + Math.random() * 0.35).toFixed(2);
+
+      particles.appendChild(particle);
+    }
+
+    /* --------------------------------------------------
+       ELEMENTS
+    -------------------------------------------------- */
+
+    const fileInput =
+      document.getElementById("fileInput");
+
+    const dropZone =
+      document.getElementById("dropZone");
+
+    const fileInfo =
+      document.getElementById("fileInfo");
+
+    const fileName =
+      document.getElementById("fileName");
+
+    const fileSize =
+      document.getElementById("fileSize");
+
+    const removeFile =
+      document.getElementById("removeFile");
+
+    const deobfuscateBtn =
+      document.getElementById("deobfuscateBtn");
+
+    const status =
+      document.getElementById("status");
+
+    const statusText =
+      document.getElementById("statusText");
+
+    let selectedFile = null;
+
+    /* --------------------------------------------------
+       FILE SIZE
+    -------------------------------------------------- */
+
+    function formatBytes(bytes) {
+
+      if (bytes === 0) {
+        return "0 Bytes";
+      }
+
+      const units = [
+        "Bytes",
+        "KB",
+        "MB",
+        "GB"
+      ];
+
+      const index =
+        Math.floor(
+          Math.log(bytes) /
+          Math.log(1024)
+        );
+
+      return (
+        parseFloat(
+          (bytes /
+            Math.pow(1024, index))
+            .toFixed(2)
+        )
+        + " "
+        + units[index]
+      );
+    }
+
+    /* --------------------------------------------------
+       FILE SELECTION
+    -------------------------------------------------- */
+
+    function selectFile(file) {
+
+      if (!file) {
+        return;
+      }
+
+      if (
+        !file.name
+          .toLowerCase()
+          .endsWith(".lua")
+      ) {
+
+        setStatus(
+          "Please select a .lua file",
+          false
+        );
+
+        return;
+      }
+
+      selectedFile = file;
+
+      fileName.textContent =
+        file.name;
+
+      fileSize.textContent =
+        formatBytes(file.size);
+
+      fileInfo.classList.add("visible");
+
+      deobfuscateBtn.disabled = false;
+
+      setStatus(
+        "File ready for processing",
+        false
+      );
+    }
+
+    /* --------------------------------------------------
+       STATUS
+    -------------------------------------------------- */
+
+    function setStatus(message, loading = false) {
+
+      statusText.textContent = message;
+
+      status.classList.toggle(
+        "loading",
+        loading
+      );
+    }
+
+    /* --------------------------------------------------
+       INPUT
+    -------------------------------------------------- */
+
+    fileInput.addEventListener(
+      "change",
+      () => {
+
+        const file =
+          fileInput.files[0];
+
+        selectFile(file);
+      }
+    );
+
+    /* --------------------------------------------------
+       DRAG & DROP
+    -------------------------------------------------- */
+
+    [
+      "dragenter",
+      "dragover"
+    ].forEach(eventName => {
+
+      dropZone.addEventListener(
+        eventName,
+        event => {
+
+          event.preventDefault();
+
+          dropZone.classList.add(
+            "dragging"
+          );
+        }
+      );
+    });
+
+    [
+      "dragleave",
+      "drop"
+    ].forEach(eventName => {
+
+      dropZone.addEventListener(
+        eventName,
+        event => {
+
+          event.preventDefault();
+
+          dropZone.classList.remove(
+            "dragging"
+          );
+        }
+      );
+    });
+
+    dropZone.addEventListener(
+      "drop",
+      event => {
+
+        const file =
+          event.dataTransfer.files[0];
+
+        selectFile(file);
+      }
+    );
+
+    /* --------------------------------------------------
+       REMOVE
+    -------------------------------------------------- */
+
+    removeFile.addEventListener(
+      "click",
+      event => {
+
+        event.preventDefault();
+
+        selectedFile = null;
+
+        fileInput.value = "";
+
+        fileInfo.classList.remove(
+          "visible"
+        );
+
+        deobfuscateBtn.disabled = true;
+
+        setStatus(
+          "Waiting for a .lua file",
+          false
+        );
+      }
+    );
+
+    /* --------------------------------------------------
+       BUTTON RIPPLE
+    -------------------------------------------------- */
+
+/* --------------------------------------------------
+   DEOBFUSCATE
+-------------------------------------------------- */
+
+deobfuscateBtn.addEventListener(
+  "click",
+  async event => {
+
+    if (!selectedFile) {
+      setStatus("Please select a .lua file first.", false);
+      return;
+    }
+	if (!selectedFile.name.toLowerCase().endsWith(".lua")) {
+    setStatus("Only .lua files are allowed.", false);
+    return;
+}
+
+const MAX_FILE_SIZE = 20 * 1024 * 1024;
+
+if (selectedFile.size > MAX_FILE_SIZE) {
+    setStatus("File is too large. Maximum size is 20 MB.", false);
+    return;
+}
+
+if (selectedFile.size === 0) {
+    setStatus("The selected .lua file is empty.", false);
+    return;
+}
+    // Ripple effect
+    const rect =
+      deobfuscateBtn.getBoundingClientRect();
+
+    const ripple =
+      document.createElement("span");
+
+    ripple.className = "ripple";
+
+    ripple.style.left =
+      (event.clientX - rect.left) + "px";
+
+    ripple.style.top =
+      (event.clientY - rect.top) + "px";
+
+    deobfuscateBtn.appendChild(ripple);
+
+    ripple.addEventListener(
+      "animationend",
+      () => ripple.remove()
+    );
+
+    // Buat FormData
+    const formData = new FormData();
+
+    formData.append(
+      "file",
+      selectedFile
+    );
+
+    // Disable tombol selama upload
+    deobfuscateBtn.disabled = true;
+
+    setStatus(
+      "Uploading Lua file...",
+      true
+    );
+
+    try {
+
+      const response = await fetch(
+        "/api/deobfuscate",
+        {
+          method: "POST",
+          body: formData
+        }
+      );
+
+      const result =
+        await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(
+          result.error ||
+          "Deobfuscation request failed."
+        );
+      }
+
+      setStatus(
+        `File received: ${result.filename}`,
+        false
+      );
+
+      console.log(
+        "Backend response:",
+        result
+      );
+
+    } catch (error) {
+
+      console.error(
+        "Deobfuscation error:",
+        error
+      );
+
+      setStatus(
+        error.message ||
+        "Failed to connect to backend.",
+        false
+      );
+
+    } finally {
+
+      deobfuscateBtn.disabled = false;
+
+    }
+  }
+);
+    /* --------------------------------------------------
+       CURSOR PARALLAX
+    -------------------------------------------------- */
+
+    document.addEventListener(
+      "mousemove",
+      event => {
+
+        const x =
+          (event.clientX /
+            window.innerWidth -
+            0.5);
+
+        const y =
+          (event.clientY /
+            window.innerHeight -
+            0.5);
+
+        document.documentElement.style
+          .setProperty(
+            "--mouse-x",
+            x.toFixed(3)
+          );
+
+        document.documentElement.style
+          .setProperty(
+            "--mouse-y",
+            y.toFixed(3)
+          );
+      }
+    );
+  </script>
+
+</body>
+</html>

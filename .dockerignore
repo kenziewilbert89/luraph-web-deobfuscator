@@ -1,0 +1,8 @@
+.git
+node_modules
+README* 
+*.zip
+engine/bin/*.exe
+sample
+research
+*.jpg

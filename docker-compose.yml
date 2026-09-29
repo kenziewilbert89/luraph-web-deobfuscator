@@ -1,0 +1,25 @@
+services:
+  web:
+    build:
+      context: .
+      args:
+        LUAU_TAG: "0.740"
+    ports:
+      - "3000:3000"
+    environment:
+      PORT: "3000"
+      MAX_UPLOAD_BYTES: "8388608"
+      DEOB_TIMEOUT_MS: "900000"
+      MAX_QUEUE: "10"
+      RATE_LIMIT: "10"
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp:size=512m,noexec,nosuid,nodev
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    pids_limit: 128
+    mem_limit: 1g
+    cpus: 2
